@@ -1,76 +1,141 @@
 package com.clinic_paw.clinic_paw_backend.service.implementation;
 
+import com.clinic_paw.clinic_paw_backend.dto.EmployeeDTO;
+import com.clinic_paw.clinic_paw_backend.exception.ApiError;
+import com.clinic_paw.clinic_paw_backend.exception.PawException;
 import com.clinic_paw.clinic_paw_backend.factory.EmployeeFactory;
 import com.clinic_paw.clinic_paw_backend.model.Employee;
-import com.clinic_paw.clinic_paw_backend.model.EmployeeRoleEntity;
 import com.clinic_paw.clinic_paw_backend.repository.IEmployeeRepository;
-import com.clinic_paw.clinic_paw_backend.repository.IRoleEmployeeRepository;
 import com.clinic_paw.clinic_paw_backend.service.interfaces.IEmployeeService;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@Validated
 public class EmployeeService implements IEmployeeService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeService.class);
 
     private final IEmployeeRepository employeeRepository;
 
     private final EmployeeFactory employeeFactory;
 
-    private final IRoleEmployeeRepository roleEmployeeRepository;
+    private final ConversionService conversionService;
 
-    @Transactional(readOnly = true)
-    @Override
-    public Employee getEmployeeByDni(String dni) {
-        return employeeRepository.findByEmployeeDni(dni).orElseThrow(() -> new EntityNotFoundException("Employee not found"));
+    @Autowired
+    public EmployeeService(IEmployeeRepository employeeRepository,
+                           EmployeeFactory employeeFactory,
+                           @Qualifier("conversionService") ConversionService conversionService) {
+        this.employeeRepository = employeeRepository;
+        this.employeeFactory = employeeFactory;
+        this.conversionService = conversionService;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<Employee> getAllEmployees() {
+    public EmployeeDTO getEmployeeById(Long id) {
+        return employeeRepository.findById(id)
+                .map(employee -> conversionService.convert(employee, EmployeeDTO.class))
+                .orElseThrow(() -> {
+                    LOGGER.warn("Employee with ID {} not found.", id);
+                    return new PawException(ApiError.EMPLOYEE_NOT_FOUND);
+                });
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public EmployeeDTO getEmployeeByDni(String dni) {
+        return employeeRepository.findByEmployeeDni(dni)
+                .map(employee -> conversionService.convert(employee, EmployeeDTO.class))
+                .orElseThrow(() -> {
+                    LOGGER.warn("Employee with dni {} not found.", dni);
+                    return new PawException(ApiError.EMPLOYEE_NOT_FOUND);
+                });
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public EmployeeDTO getEmployeeByEmail(String email) {
+        return  employeeRepository.findByEmployeeEmail(email)
+                .map(employee -> conversionService.convert(employee, EmployeeDTO.class))
+                .orElseThrow(() -> {
+                    LOGGER.warn("Employee with email {} not found.", email);
+                    return new PawException(ApiError.EMPLOYEE_NOT_FOUND);
+                });
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<EmployeeDTO> getAllEmployees() {
         List<Employee> employeeList = employeeRepository.findAll();
-
         if (employeeList.isEmpty()) {
-            return null;
+            LOGGER.info("The employee list is empty.");
+            return Collections.emptyList();
         }
-
-        return employeeList;
+        return employeeList.stream()
+                .map(employee -> conversionService.convert(employee, EmployeeDTO.class))
+                .toList();
     }
 
     @Transactional
     @Override
-    public void saveEmployee(Employee employee) {
-        Employee employeeSave = employeeFactory.createEmployee(employee);
-        employeeRepository.save(employeeSave);
+    public void saveEmployee(EmployeeDTO employeeDTO) {
+       Optional<Employee> employeeOptional = employeeRepository.findById(employeeDTO.id());
+       if (employeeOptional.isPresent()) {
+           LOGGER.warn("Employee with ID {} already exists, cannot be saved.", employeeDTO.id());
+           throw new PawException(ApiError.EMPLOYEE_ALREADY_EXISTS);
+       }
+       Employee employeeSave = conversionService.convert(employeeDTO, Employee.class);
+       assert employeeSave != null;
+       employeeRepository.save(employeeSave);
     }
 
-
-    //CORREGIR
     @Transactional
     @Override
-    public Employee updateEmployee(Long id, Employee employee) {
-        Employee employeeUpdate = employeeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Employee not found"));
-        employeeUpdate.setId(employee.getId());
-        employeeUpdate.setDni(employee.getDni());
-        employeeUpdate.setFirstName(employee.getFirstName());
-        employeeUpdate.setLastName(employee.getLastName());
-        employeeUpdate.setEmail(employee.getEmail());
-        employeeUpdate.setEmployeeRole(employee.getEmployeeRole());
-        employeeUpdate.setBirthDate(employee.getBirthDate());
-        employeeUpdate.setPhoneNumber(employee.getPhoneNumber());
+    public EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO) {
+        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+        if (employeeOptional.isPresent()) {
+            LOGGER.warn("Employee with ID {} already exists, cannot be updated.", employeeDTO.id());
+            throw new PawException(ApiError.EMPLOYEE_ALREADY_EXISTS);
+        }
+        Employee employee = conversionService.convert(employeeDTO, Employee.class);
+        assert employee != null;
+        updateEmployeeFields(employee, employeeDTO);
+        employeeRepository.save(employee);
 
-        employeeRepository.save(employeeUpdate);
-        return employeeUpdate;
+        return conversionService.convert(employee, EmployeeDTO.class);
     }
 
     @Transactional
     @Override
     public void deleteEmployee(Long id) {
-        Employee employeeDelete = employeeRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Employee not found"));
-        employeeRepository.delete(employeeDelete);
+        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+        if (employeeOptional.isEmpty()) {
+            LOGGER.warn("Employee not found with ID: {}.", id);
+            throw new PawException(ApiError.EMPLOYEE_NOT_FOUND);
+        }
+        employeeRepository.deleteById(id);
+    }
+
+    private void updateEmployeeFields(Employee employee, EmployeeDTO employeeDTO) {
+        employee.setId(employeeDTO.id());
+        employee.setEmployeeRole(employeeDTO.role());
+        employee.setDirection(employeeDTO.direction());
+        employee.setDni(employeeDTO.dni());
+        employee.setEmail(employeeDTO.email());
+        employee.setFirstName(employeeDTO.firstName());
+        employee.setLastName(employeeDTO.lastName());
+        employee.setPhoneNumber(employeeDTO.phoneNumber());
+        employee.setBirthDate(employeeDTO.birthDate());
     }
 }

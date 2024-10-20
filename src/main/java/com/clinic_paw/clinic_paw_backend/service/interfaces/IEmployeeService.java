@@ -1,18 +1,22 @@
 package com.clinic_paw.clinic_paw_backend.service.interfaces;
 
-import com.clinic_paw.clinic_paw_backend.model.Employee;
+import com.clinic_paw.clinic_paw_backend.dto.EmployeeDTO;
 
 import java.util.List;
 
 public interface IEmployeeService {
 
-    Employee getEmployeeByDni(String dni);
+    EmployeeDTO getEmployeeById(Long id);
 
-    List<Employee> getAllEmployees();
+    EmployeeDTO getEmployeeByDni(String dni);
 
-    void saveEmployee(Employee employee);
+    EmployeeDTO getEmployeeByEmail(String email);
 
-    Employee updateEmployee(Long id, Employee employee);
+    List<EmployeeDTO> getAllEmployees();
+
+    void saveEmployee(EmployeeDTO employeeDTO);
+
+    EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO);
 
     void deleteEmployee(Long id);
 }

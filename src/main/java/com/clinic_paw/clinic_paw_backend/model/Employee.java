@@ -29,6 +29,7 @@ public class Employee {
     private String email;
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
+    private String direction;
     @Temporal(TemporalType.DATE)
     @Column(name = "birth_date")
     private LocalDate birthDate;

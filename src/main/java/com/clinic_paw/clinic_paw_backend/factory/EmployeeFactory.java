@@ -2,11 +2,20 @@ package com.clinic_paw.clinic_paw_backend.factory;
 
 import com.clinic_paw.clinic_paw_backend.enums.EmployeeRoleEnum;
 import com.clinic_paw.clinic_paw_backend.model.Employee;
-import com.clinic_paw.clinic_paw_backend.util.EmployeeMapper;
+import com.clinic_paw.clinic_paw_backend.model.EmployeeRoleEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EmployeeFactory implements IEmployeeFactory {
+
+    private final ConversionService conversionService;
+
+    @Autowired
+    public EmployeeFactory(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
 
     private Employee buildEmployee(Employee employee, EmployeeRoleEnum role) {
         return Employee.builder()
@@ -16,7 +25,7 @@ public class EmployeeFactory implements IEmployeeFactory {
                 .email(employee.getEmail())
                 .birthDate(employee.getBirthDate())
                 .phoneNumber(employee.getPhoneNumber())
-                .employeeRole(EmployeeMapper.enumToEntity(role))
+                .employeeRole(conversionService.convert(role, EmployeeRoleEntity.class))
                 .build();
     }
 
