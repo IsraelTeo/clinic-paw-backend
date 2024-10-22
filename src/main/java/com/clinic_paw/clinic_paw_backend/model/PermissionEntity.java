@@ -1,22 +1,21 @@
 package com.clinic_paw.clinic_paw_backend.model;
 
-import com.clinic_paw.clinic_paw_backend.enums.EmployeeRoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
-@Table(name = "roles")
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 @Getter
 @Setter
 @Builder
-public class EmployeeRoleEntity {
+@Entity
+@Table(name = "permissions")
+public class PermissionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Enumerated(EnumType.STRING)
-    private EmployeeRoleEnum role;
+    private String name;
 }

@@ -17,4 +17,3 @@ public interface IEmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT e FROM Employee e WHERE e.email = :email")
     Optional<Employee> findByEmployeeEmail(@Param("email") String email);
 }
-@

@@ -1,6 +1,7 @@
 package com.clinic_paw.clinic_paw_backend.controller;
 
 import com.clinic_paw.clinic_paw_backend.dto.EmployeeDTO;
+import com.clinic_paw.clinic_paw_backend.exception.SecurityErrorHandler;
 import com.clinic_paw.clinic_paw_backend.payload.MessageResponse;
 import com.clinic_paw.clinic_paw_backend.service.implementation.EmployeeService;
 import jakarta.validation.Valid;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.method.AuthorizeReturnObject;
+import org.springframework.security.authorization.method.HandleAuthorizationDenied;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +34,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/employee/{id}")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
+    @AuthorizeReturnObject
     public ResponseEntity<EmployeeDTO> getEmployeeById(@Min(1) @PathVariable("id") Long id) {
         LOGGER.info("Getting employee by id {}.", id);
         EmployeeDTO response = employeeService.getEmployeeById(id);
@@ -38,6 +43,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/employee/{dni}")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
+    @AuthorizeReturnObject
     public ResponseEntity<EmployeeDTO> getEmployeeByDni(@PathVariable("dni") String dni) {
         LOGGER.info("Getting employee by dni: {}", dni);
         EmployeeDTO response = employeeService.getEmployeeByDni(dni);
@@ -45,6 +52,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/employee")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
+    @AuthorizeReturnObject
     public ResponseEntity<EmployeeDTO> getEmployeeByEmail(@RequestParam(value = "email") String email) {
         LOGGER.info("Getting employee by email: {}", email);
         EmployeeDTO response = employeeService.getEmployeeByEmail(email);
@@ -52,6 +61,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/employees")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
+    @AuthorizeReturnObject
     public ResponseEntity<List<EmployeeDTO> > getAllEmployees() {
         LOGGER.info("Getting all employees.");
         List<EmployeeDTO> response = employeeService.getAllEmployees();
@@ -62,6 +73,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/employee")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
     public ResponseEntity<MessageResponse> saveEmployee(@RequestBody @Valid EmployeeDTO employeeDTO) {
         LOGGER.info("Creating employee.");
         employeeService.saveEmployee(employeeDTO);
@@ -72,6 +84,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/employee/{id}")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
     public ResponseEntity<EmployeeDTO> updateEmployee(@Min(1) @PathVariable("id") Long id, @RequestBody @Valid EmployeeDTO employeeDTO) {
         LOGGER.info("Updating employee with ID {}:", id);
         EmployeeDTO response = employeeService.updateEmployee(id, employeeDTO);
@@ -79,6 +92,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/employee/{id}")
+    @HandleAuthorizationDenied(handlerClass = SecurityErrorHandler.class)
     public ResponseEntity<MessageResponse> deleteEmployee(@PathVariable("id") Long id) {
         LOGGER.info("Deleting employee with ID {}.", id);
         employeeService.deleteEmployee(id);

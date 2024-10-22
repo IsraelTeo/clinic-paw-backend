@@ -1,6 +1,5 @@
 package com.clinic_paw.clinic_paw_backend.model;
 
-import com.clinic_paw.clinic_paw_backend.enums.EmployeeRoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 

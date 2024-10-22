@@ -1,16 +1,18 @@
 package com.clinic_paw.clinic_paw_backend.service.implementation;
 
 import com.clinic_paw.clinic_paw_backend.dto.EmployeeDTO;
+import com.clinic_paw.clinic_paw_backend.email.EmailContentMessage;
+import com.clinic_paw.clinic_paw_backend.email.SendEmailService;
 import com.clinic_paw.clinic_paw_backend.exception.ApiError;
 import com.clinic_paw.clinic_paw_backend.exception.PawException;
 import com.clinic_paw.clinic_paw_backend.factory.EmployeeFactory;
 import com.clinic_paw.clinic_paw_backend.model.Employee;
+import com.clinic_paw.clinic_paw_backend.model.EmployeeRoleEntity;
 import com.clinic_paw.clinic_paw_backend.repository.IEmployeeRepository;
 import com.clinic_paw.clinic_paw_backend.service.interfaces.IEmployeeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,13 +34,15 @@ public class EmployeeService implements IEmployeeService {
 
     private final ConversionService conversionService;
 
+    private final SendEmailService sendEmailService;
+
     @Autowired
-    public EmployeeService(IEmployeeRepository employeeRepository,
-                           EmployeeFactory employeeFactory,
-                           @Qualifier("conversionService") ConversionService conversionService) {
+    public EmployeeService(IEmployeeRepository employeeRepository, EmployeeFactory employeeFactory, ConversionService conversionService,
+                           SendEmailService sendEmailService) {
         this.employeeRepository = employeeRepository;
         this.employeeFactory = employeeFactory;
         this.conversionService = conversionService;
+        this.sendEmailService = sendEmailService;
     }
 
     @Transactional(readOnly = true)
@@ -95,9 +99,17 @@ public class EmployeeService implements IEmployeeService {
            LOGGER.warn("Employee with ID {} already exists, cannot be saved.", employeeDTO.id());
            throw new PawException(ApiError.EMPLOYEE_ALREADY_EXISTS);
        }
+
+       EmployeeRoleEntity roleEntitySave = conversionService.convert(employeeDTO.role(), EmployeeRoleEntity.class);
        Employee employeeSave = conversionService.convert(employeeDTO, Employee.class);
        assert employeeSave != null;
-       employeeRepository.save(employeeSave);
+
+       employeeSave.setEmployeeRole(roleEntitySave);
+
+       Employee employeeCreated = employeeFactory.createEmployee(employeeSave);
+       employeeRepository.save(employeeCreated);
+
+       sendEmail(employeeCreated);
     }
 
     @Transactional
@@ -111,6 +123,7 @@ public class EmployeeService implements IEmployeeService {
         Employee employee = conversionService.convert(employeeDTO, Employee.class);
         assert employee != null;
         updateEmployeeFields(employee, employeeDTO);
+
         employeeRepository.save(employee);
 
         return conversionService.convert(employee, EmployeeDTO.class);
@@ -128,7 +141,6 @@ public class EmployeeService implements IEmployeeService {
     }
 
     private void updateEmployeeFields(Employee employee, EmployeeDTO employeeDTO) {
-        employee.setId(employeeDTO.id());
         employee.setEmployeeRole(employeeDTO.role());
         employee.setDirection(employeeDTO.direction());
         employee.setDni(employeeDTO.dni());
@@ -137,5 +149,16 @@ public class EmployeeService implements IEmployeeService {
         employee.setLastName(employeeDTO.lastName());
         employee.setPhoneNumber(employeeDTO.phoneNumber());
         employee.setBirthDate(employeeDTO.birthDate());
+    }
+
+    private void sendEmail(Employee employee){
+        String subject = EmailContentMessage.getWelcomeEmailSubject();
+        String messageBody = EmailContentMessage.getWelcomeEmailMessage(employee.getEmail());
+
+        try {
+            sendEmailService.sendEmail(employee.getEmail(), subject, messageBody);
+        } catch (Exception e) {
+            LOGGER.error("Error while sending email.", e);
+        }
     }
 }

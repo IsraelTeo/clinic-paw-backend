@@ -1,7 +1,6 @@
 package com.clinic_paw.clinic_paw_backend.dto;
 
 import com.clinic_paw.clinic_paw_backend.model.EmployeeRoleEntity;
-import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
