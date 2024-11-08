@@ -41,30 +41,16 @@ public class SecurityConfig {
                 .sessionManagement(httpSecuritySessionManagement ->
                         httpSecuritySessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(http -> {
-                    //auth
+
                     http.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
-                    //employee
+
                     http.requestMatchers(HttpMethod.POST, "/api/v1/employee").hasRole("ADMIN");
                     http.requestMatchers(HttpMethod.PUT, "/api/v1/employee").hasRole("ADMIN");
                     http.requestMatchers(HttpMethod.GET, "/api/v1/employee/{id}").hasRole("ADMIN");
                     http.requestMatchers(HttpMethod.GET , "/api/v1/employee/{dni}").hasRole("ADMIN");
                     http.requestMatchers(HttpMethod.GET , "/api/v1/employees").hasRole("ADMIN");
                     http.requestMatchers(HttpMethod.DELETE, "/api/v1/employee/{dni}").hasRole("ADMIN");
-                    //customer
-                    http.requestMatchers(HttpMethod.POST, "/api/v1/customer").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.PUT, "/api/v1/customer").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.GET, "/api/v1/customer/{id}").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.GET,  "/api/v1/customer/{dni}").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.GET, "/api/v1/customers").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.DELETE, "/api/v1/customer/{id}").hasAnyRole("EMPLOYEE", "ADMIN");
-                    //pet
-                    http.requestMatchers(HttpMethod.POST, "/api/v1/pet").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.PUT, "/api/v1/pet").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.GET, "/api/v1/pet/{id}").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.GET, "/api/v1/pet/{name}").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.GET, "/api/v1/pets").hasAnyRole("EMPLOYEE", "ADMIN");
-                    http.requestMatchers(HttpMethod.DELETE, "/api/v1/pet/{id}").hasAnyRole("EMPLOYEE", "ADMIN");
-                    //default
+
                     http.anyRequest().denyAll();
                 })
                 .addFilterBefore(new JWTValidator(this.jwtUtil), BasicAuthenticationFilter.class)

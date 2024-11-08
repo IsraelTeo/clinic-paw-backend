@@ -18,20 +18,38 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true, nullable = false, updatable = false)
+
+    @Column(
+            unique = true,
+            nullable = false,
+            updatable = false
+    )
     private String dni;
+
     @Column(name = "first_name")
     private String firstName;
+
     @Column(name = "last_name")
     private String lastName;
-    @Column(unique = true, nullable = false)
+
+    @Column(
+            unique = true,
+            nullable = false
+    )
     private String email;
-    @Column(name = "phone_number", nullable = false)
+
+    @Column(
+            name = "phone_number",
+            nullable = false
+    )
     private String phoneNumber;
+
     private String direction;
+
     @Temporal(TemporalType.DATE)
     @Column(name = "birth_date")
     private LocalDate birthDate;
+
     @ManyToOne(
             targetEntity = EmployeeRoleEntity.class,
             fetch = FetchType.EAGER,
@@ -39,11 +57,11 @@ public class Employee {
     )
     @JoinColumn(name = "role_id")
     private EmployeeRoleEntity employeeRole;
+
     @Temporal(TemporalType.DATE)
     @Column(name = "create_at")
     private LocalDate createAt;
+
     @PrePersist
-    public void prePersist(){
-        this.createAt = LocalDate.now();
-    }
+    public void prePersist(){this.createAt = LocalDate.now();}
 }

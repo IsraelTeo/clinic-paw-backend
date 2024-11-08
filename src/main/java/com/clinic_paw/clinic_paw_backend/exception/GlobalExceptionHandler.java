@@ -17,7 +17,8 @@ import java.util.List;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e, HttpHeaders headers,
+                                                                  HttpStatusCode status, WebRequest request) {
         List<String> reasons = new ArrayList<>();
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
             reasons.add(String.format("%s - %s", fieldError.getField(), fieldError.getDefaultMessage()));

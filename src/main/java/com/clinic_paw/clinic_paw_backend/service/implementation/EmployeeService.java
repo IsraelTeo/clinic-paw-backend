@@ -108,7 +108,6 @@ public class EmployeeService implements IEmployeeService {
 
        Employee employeeCreated = employeeFactory.createEmployee(employeeSave);
        employeeRepository.save(employeeCreated);
-
        sendEmail(employeeCreated);
     }
 

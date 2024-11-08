@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: clinic-paw-backend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/clinica_paw_db?useSSL=false&serverTimezone=UTC
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+email:
+  user: israel.juag@gmail.com
+  password: tcgndvuynibbsolm
+
+security:
+  jwt:
+    key:
+      private: 12e56f4fac2d94b5f17ab3e51bce0fa518f476537a6bcebcbb91c37471748d47
+    user:
+      generator: AUTHOJWT-BACKEND
+
