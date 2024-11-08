@@ -1,5 +1,6 @@
 package com.clinic_paw.clinic_paw_backend.model;
 
+import com.clinic_paw.clinic_paw_backend.enums.GenderPetEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,5 +17,7 @@ public class GenderPet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+
+    @Enumerated(EnumType.STRING)
+    private GenderPetEnum gender;
 }
